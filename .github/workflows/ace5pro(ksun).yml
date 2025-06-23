@@ -262,12 +262,11 @@ jobs:
          echo "SOURCE_DATE_EPOCH = $SOURCE_DATE_EPOCH"
 
          # 设置一些通用参数（便于后续维护）
-         export MAKE_ARGS="LLVM=1 ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- \
-         CC=clang-20 LD=ld.lld-20 HOSTLD=ld.lld-20 \
-         AR=llvm-ar-20 NM=llvm-nm-20 OBJCOPY=llvm-objcopy-20 OBJDUMP=llvm-objdump-20 STRIP=llvm-strip-20 \
+         export MAKE_ARGS="LLVM=-20 ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC=clang \
          RUSTC=../../prebuilts/rust/linux-x86/1.73.0b/bin/rustc \
          PAHOLE=../../prebuilts/kernel-build-tools/linux-x86/bin/pahole \
-         O=out KCFLAGS=-Wno-error SOURCE_DATE_EPOCH=${SOURCE_DATE_EPOCH}"
+         LD=ld.lld HOSTLD=ld.lld O=out KCFLAGS=-Wno-error \
+         SOURCE_DATE_EPOCH=${SOURCE_DATE_EPOCH}"
          echo "Using SOURCE_DATE_EPOCH: $SOURCE_DATE_EPOCH"
 
          # 进入源码目录
