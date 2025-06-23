@@ -73,8 +73,12 @@ jobs:
       # 2. 安装构建依赖（包括 ccache）  
       - name: Install Dependencies  
         run: |  
-         sudo apt-get update  
-         sudo apt-get install -y python3 git curl ccache libelf-dev  
+         sudo apt update && sudo apt upgrade -y
+         sudo apt-get install curl bison flex make binutils dwarves git lld pahole zip perl make gcc python3 python-is-python3 bc libssl-dev libelf-dev -y
+         sudo rm -rf ./llvm.sh
+         sudo wget https://apt.llvm.org/llvm.sh
+         sudo chmod +x llvm.sh
+         sudo sudo ./llvm.sh 20 all  
 
       # 3. 恢复 ccache 缓存  
       - name: Restore ccache
@@ -245,8 +249,6 @@ jobs:
    
       - name: Build Kernel
         run: |
-         # 加入 clang 到 PATH
-         export PATH="${{ github.workspace }}/kernel_workspace/kernel_platform/prebuilts/clang/host/linux-x86/clang-r510928/bin:$PATH"
          # 加入 ccache 到 PATH
          export PATH="/usr/lib/ccache:$PATH" 
 
@@ -260,11 +262,12 @@ jobs:
          echo "SOURCE_DATE_EPOCH = $SOURCE_DATE_EPOCH"
 
          # 设置一些通用参数（便于后续维护）
-         export MAKE_ARGS="LLVM=1 ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC=clang \
+         export MAKE_ARGS="LLVM=1 ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- \
+         CC=clang-20 LD=ld.lld-20 HOSTLD=ld.lld-20 \
+         AR=llvm-ar-20 NM=llvm-nm-20 OBJCOPY=llvm-objcopy-20 OBJDUMP=llvm-objdump-20 STRIP=llvm-strip-20 \
          RUSTC=../../prebuilts/rust/linux-x86/1.73.0b/bin/rustc \
          PAHOLE=../../prebuilts/kernel-build-tools/linux-x86/bin/pahole \
-         LD=ld.lld HOSTLD=ld.lld O=out KCFLAGS=-Wno-error \
-         SOURCE_DATE_EPOCH=${SOURCE_DATE_EPOCH}"
+         O=out KCFLAGS=-Wno-error SOURCE_DATE_EPOCH=${SOURCE_DATE_EPOCH}"
          echo "Using SOURCE_DATE_EPOCH: $SOURCE_DATE_EPOCH"
 
          # 进入源码目录
