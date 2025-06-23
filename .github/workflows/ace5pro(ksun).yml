@@ -73,8 +73,8 @@ jobs:
       # 2. 安装构建依赖（包括 ccache）  
       - name: Install Dependencies  
         run: |  
-         sudo apt update && sudo apt upgrade -y
-         sudo apt-get install curl bison flex make binutils dwarves git lld pahole zip perl make gcc python3 python-is-python3 bc libssl-dev libelf-dev -y
+         sudo apt-get update  
+         sudo apt-get install -y python3 git curl ccache libelf-dev
          sudo rm -rf ./llvm.sh
          sudo wget https://apt.llvm.org/llvm.sh
          sudo chmod +x llvm.sh
