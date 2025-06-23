@@ -269,8 +269,6 @@ jobs:
          LD=ld.lld HOSTLD=ld.lld O=out KCFLAGS=-Wno-error \
          SOURCE_DATE_EPOCH=${SOURCE_DATE_EPOCH}"
          echo "Using SOURCE_DATE_EPOCH: $SOURCE_DATE_EPOCH"
-         clang --version
-         ld.lld --version
 
          # 进入源码目录
          cd kernel_workspace/kernel_platform/common
