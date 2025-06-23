@@ -250,6 +250,7 @@ jobs:
       - name: Build Kernel
         run: |
          # 加入 ccache 到 PATH
+         export PATH="/usr/lib/llvm-20/bin:$PATH"
          export PATH="/usr/lib/ccache:$PATH" 
 
          # 设置固定内核构建时间
@@ -262,12 +263,14 @@ jobs:
          echo "SOURCE_DATE_EPOCH = $SOURCE_DATE_EPOCH"
 
          # 设置一些通用参数（便于后续维护）
-         export MAKE_ARGS="LLVM=-20 ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC=clang \
+         export MAKE_ARGS="LLVM=1 ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- CC=clang \
          RUSTC=../../prebuilts/rust/linux-x86/1.73.0b/bin/rustc \
          PAHOLE=../../prebuilts/kernel-build-tools/linux-x86/bin/pahole \
          LD=ld.lld HOSTLD=ld.lld O=out KCFLAGS=-Wno-error \
          SOURCE_DATE_EPOCH=${SOURCE_DATE_EPOCH}"
          echo "Using SOURCE_DATE_EPOCH: $SOURCE_DATE_EPOCH"
+         clang --version
+         ld.lld --version
 
          # 进入源码目录
          cd kernel_workspace/kernel_platform/common
