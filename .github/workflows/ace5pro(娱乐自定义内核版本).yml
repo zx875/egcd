@@ -129,15 +129,15 @@ jobs:
          KSU_KERNEL_VERSION="${{ github.event.inputs.sukisu_kernel_version }}"
          echo "KSUVER=$KSU_VERSION" >> $GITHUB_ENV
          echo "KSU_KERNEL_VER=$KSU_KERNEL_VERSION" >> $GITHUB_ENV
-         # 替换 ifeq 区段，注入数字版本
-         sed -i "/ifeq.*\.git/,/endif/c\\
-         KSU_VERSION := $KSU_VERSION\\
-         ccflags-y += -DKSU_VERSION=\$(KSU_VERSION)\\
-         \$(info -- SukiSU version: \$(KSU_VERSION))
-         " kernel/Makefile
+         # 注入数字版本
+         sed -i '/ifeq.*KSU_GITHUB_VERSION_COMMIT/,/endif/c\
+         KSU_VERSION := '"$KSU_VERSION"'\
+         ccflags-y += -DKSU_VERSION=$(KSU_VERSION)\
+         $(info -- SukiSU version: $(KSU_VERSION))
+         ' kernel/Makefile
          # 替换字符串版本宏定义
          sed -i 's/ccflags-y += -DKSU_VERSION=\\\".*\\\"/ccflags-y += -DKSU_VERSION=\\\"'"$KSU_KERNEL_VERSION"'\\\"/' kernel/Makefile
-         # 替换 Github 字符串版本信息输出
+         # 替换 info 输出版本字符串
          sed -i 's/$(info -- \$$(REPO_NAME) version (Github): .*)/$(info -- \$$(REPO_NAME) version (Github): '"$KSU_KERNEL_VERSION"')/' kernel/Makefile
          echo "✅ Injected SukiSU version: $KSU_VERSION"
          echo "✅ Injected SukiSU string version: $KSU_KERNEL_VERSION"
