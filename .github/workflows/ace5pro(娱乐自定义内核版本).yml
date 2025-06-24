@@ -126,20 +126,18 @@ jobs:
          cd kernel_workspace/kernel_platform
          curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s susfs-main
          cd KernelSU
-         # 获取版本号（这里用 GitHub 输入变量）
+         # 获取版本号（从 GitHub 输入变量）
          KSU_VERSION="${{ github.event.inputs.sukisu_version }}"
-         # 设置环境变量供后续步骤使用
-         echo "KSUVER=$KSU_VERSION" >> $GITHUB_ENV
-         # 替换本地 git 分支的版本输出（你原来的做法）
-         sed -i "/ifeq.*\.git/,/endif/c\\
-         KSU_VERSION := $KSU_VERSION\\
-         ccflags-y += -DKSU_VERSION=\$(KSU_VERSION)\\
-         \$(info -- SukiSU version: \$(KSU_VERSION))
-         " kernel/Makefile
-         # ✅ 替换 Github 分支下的版本输出为数字
-         sed -i "s/\$(info -- \$$(REPO_NAME) version (Github): .*)/\$(info -- \$$(REPO_NAME) version (Github): ${KSU_VERSION})/" kernel/Makefile
-         # ✅ 替换 -DKSU_VERSION="..." 宏定义为数字
-         sed -i "s/-DKSU_VERSION=\\\".*\\\"/-DKSU_VERSION=\\\"${KSU_VERSION}\\\"/" kernel/Makefile
+         # 修改 Makefile - 使用精确行号替换
+         sed -i "s|^KSU_KERNEL_VERSION :=.*|KSU_KERNEL_VERSION := $KSU_VERSION|" kernel/Makefile
+         # 修改版本信息输出
+         sed -i "s|\$(info -- .* version (Github): .*|\$(info -- \$(REPO_NAME) version (Injected): $KSU_VERSION)|" kernel/Makefile
+         # 确保版本宏定义正确
+         sed -i "s|-DKSU_VERSION=\\\".*\\\"|-DKSU_VERSION=\\\"$KSU_VERSION\\\"|" kernel/Makefile
+         # 移除原有版本生成逻辑（可选但推荐）
+         sed -i "/ifeq (\$(KSU_GITHUB_VERSION),)/,/endif/d" kernel/Makefile
+         # 添加新版本注入点
+         echo -e "\n# Injected version override\nKSU_KERNEL_VERSION := $KSU_VERSION" >> kernel/Makefile
          echo "✅ Injected SukiSU version: $KSU_VERSION"
 
       - name: Set up SUSFS & apply patches
