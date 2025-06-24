@@ -74,11 +74,7 @@ jobs:
       - name: Install Dependencies  
         run: |  
          sudo apt-get update  
-         sudo apt-get install -y python3 git curl ccache libelf-dev
-         sudo rm -rf ./llvm.sh
-         sudo wget https://apt.llvm.org/llvm.sh
-         sudo chmod +x llvm.sh
-         sudo sudo ./llvm.sh 20 all  
+         sudo apt-get install -y python3 git curl ccache libelf-dev  
 
       # 3. 恢复 ccache 缓存  
       - name: Restore ccache
@@ -145,7 +141,7 @@ jobs:
          cd kernel_platform
          cp ../susfs4ksu/kernel_patches/50_add_susfs_in_gki-${{ github.event.inputs.ANDROID_VERSION }}-${{ github.event.inputs.KERNEL_VERSION }}.patch ./common/
          cp ../kernel_patches/next/syscall_hooks.patch ./common/
-         cp ../kernel_patches/next/0001-kernel-implement-susfs-v1.5.8-KernelSU-Next-v1.0.8.patch ./KernelSU-Next/
+         cp ../kernel_patches/next/ksun_susfs_v1.5.7_patch_12647+.patch ./KernelSU-Next/
          cp ../susfs4ksu/kernel_patches/fs/* ./common/fs/
          cp ../susfs4ksu/kernel_patches/include/linux/* ./common/include/linux/
          cp -r ../SukiSU_patch/other/zram/lz4k/include/linux/* ./common/include/linux || true
@@ -154,7 +150,7 @@ jobs:
          cp -r ../SukiSU_patch/other/zram/lz4k_oplus ./common/lib/ || true
          cp ../111/boot.patch ./common/
          cd ./KernelSU-Next
-         patch -p1 < 0001-kernel-implement-susfs-v1.5.8-KernelSU-Next-v1.0.8.patch || true
+         patch -p1 < ksun_susfs_v1.5.7_patch_12647+.patch || true
          cd ../common
          if [[ "${{ github.event.inputs.FEIL }}" == "oneplus_13" || "${{ github.event.inputs.FEIL }}" == "oneplus_ace5_pro" ]]; then
            sed -i 's/-32,12 +32,38/-32,11 +32,37/g' 50_add_susfs_in_gki-${{ github.event.inputs.ANDROID_VERSION }}-${{ github.event.inputs.KERNEL_VERSION }}.patch
