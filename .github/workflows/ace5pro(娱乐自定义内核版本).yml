@@ -136,9 +136,9 @@ jobs:
          ccflags-y += -DKSU_VERSION=\$(KSU_VERSION)\\
          \$(info -- SukiSU version: \$(KSU_VERSION))
          " kernel/Makefile
-         # ✅ 替换 GitHub 分支下的打印版本号（v3.1.6-xxx -> 数字）
-         sed -i "s/-- \$(REPO_NAME) version (Github): .*/-- \$(REPO_NAME) version (Github): ${KSU_VERSION}/" kernel/Makefile
-         # ✅ 替换 -DKSU_VERSION="v3.1.6-xxx" 的宏定义为数字版本
+         # ✅ 替换 Github 分支下的版本输出为数字
+         sed -i "s/\$(info -- \$$(REPO_NAME) version (Github): .*)/\$(info -- \$$(REPO_NAME) version (Github): ${KSU_VERSION})/" kernel/Makefile
+         # ✅ 替换 -DKSU_VERSION="..." 宏定义为数字
          sed -i "s/-DKSU_VERSION=\\\".*\\\"/-DKSU_VERSION=\\\"${KSU_VERSION}\\\"/" kernel/Makefile
          echo "✅ Injected SukiSU version: $KSU_VERSION"
 
