@@ -125,36 +125,30 @@ jobs:
          cd kernel_workspace/kernel_platform
          curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s susfs-main
          cd KernelSU
-
          KSU_VERSION="${{ github.event.inputs.sukisu_version }}"
          KSU_KERNEL_VERSION="${{ github.event.inputs.sukisu_kernel_version }}"
-
          echo "KSUVER=$KSU_VERSION" >> $GITHUB_ENV
          echo "KSU_KERNEL_VER=$KSU_KERNEL_VERSION" >> $GITHUB_ENV
-
-         # 🔥 删除原始 Makefile 中的 ifeq ... else ... endif 块，避免残留 else 报错
-          awk '
+         # 🔥 删除 ifeq 块，防止 else 残留
+         awk '
            BEGIN { skip = 0 }
-           /ifeq *\$KSU_GITHUB_VERSION_COMMIT,/ { skip = 1 }
+           /ifeq *\$KSU_GITHUB_VERSION_COMMIT,/ { skip = 1; next }
            skip && /endif/ { skip = 0; next }
            skip { next }
            { print }
          ' kernel/Makefile > kernel/Makefile.tmp
-           mv kernel/Makefile.tmp kernel/Makefile
-
-           # ✅ 重新注入版本号定义（数值 + 字符串）
-           cat <<EOF >> kernel/Makefile
-
-           # Injected by GitHub Actions
-           KSU_VERSION := ${KSU_VERSION}
-           ccflags-y += -DKSU_VERSION=\$(KSU_VERSION)
-           ccflags-y += -DKSU_VERSION="${KSU_KERNEL_VERSION}"
-           \$(info -- SukiSU version: \$(KSU_VERSION))
-           \$(info -- SukiSU string version: ${KSU_KERNEL_VERSION})
-           EOF
-
-           echo "✅ Injected SukiSU version: $KSU_VERSION"
-           echo "✅ Injected SukiSU string version: $KSU_KERNEL_VERSION"
+         mv kernel/Makefile.tmp kernel/Makefile
+         # ✅ 重新注入版本号定义（数值 + 字符串）
+         cat <<EOF >> kernel/Makefile
+         # Injected by GitHub Actions
+         KSU_VERSION := ${KSU_VERSION}
+         ccflags-y += -DKSU_VERSION=\$(KSU_VERSION)
+         ccflags-y += -DKSU_VERSION="${KSU_KERNEL_VERSION}"
+         \$(info -- SukiSU version: \$(KSU_VERSION))
+         \$(info -- SukiSU string version: ${KSU_KERNEL_VERSION})
+         EOF
+         echo "✅ Injected SukiSU version: $KSU_VERSION"
+         echo "✅ Injected SukiSU string version: $KSU_KERNEL_VERSION"
 
       - name: Set up SUSFS & apply patches
         run: |
