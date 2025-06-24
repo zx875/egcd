@@ -45,7 +45,7 @@ on:
       sukisu_version:
         description: "自定义sukisu版本号"
         required: true
-        default: "13000"
+        default: "13171"
 jobs:
   build:
     runs-on: ubuntu-latest
