@@ -22,11 +22,6 @@ on:
         description: "修改内核名称"
         required: true
         default: '-android15-8-g013ec21bba94-abogki383916444'
-      ENABLE_KPM:
-        description: "启用kpm"
-        required: false
-        default: false
-        type: boolean
       local_version:
         description: '输入内核后缀名（如-v8）'
         required: false
@@ -44,6 +39,10 @@ on:
         type: string
       sukisu_version:
         description: "自定义sukisu版本号"
+        required: true
+        default: "13171"
+      sukisu_kernel_version:
+        description: "自定义SukiSU字符串版本号"
         required: true
         default: "13171"
 jobs:
@@ -126,16 +125,22 @@ jobs:
          cd kernel_workspace/kernel_platform
          curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s susfs-main
          cd KernelSU
-         KSU_VERSION_STR="${{ github.event.inputs.sukisu_version }}"
-         KSU_VERSION_NUM="${{ github.event.inputs.sukisu_version }}"
-         echo "KSUVER_STR=$KSU_VERSION_STR" >> $GITHUB_ENV
-         echo "KSUVER_NUM=$KSU_VERSION_NUM" >> $GITHUB_ENV
-         sed -i "s/^KSU_KERNEL_VERSION :=.*$/KSU_KERNEL_VERSION := ${KSU_VERSION_STR}/" kernel/Makefile
-         sed -i "s/^KSU_API_VERSION :=.*$/KSU_API_VERSION := ${KSU_VERSION_NUM}/" kernel/Makefile
-         sed -i "s/^ccflags-y += -DKSU_VERSION=.*$/ccflags-y += -DKSU_VERSION=\"${KSU_VERSION_STR}\"/" kernel/Makefile
-         sed -i "s/^ccflags-y += -DKSU_API_VERSION=.*$/ccflags-y += -DKSU_API_VERSION=${KSU_VERSION_NUM}/" kernel/Makefile
-         echo "✅ Injected SukiSU version string: $KSU_VERSION_STR"
-         echo "✅ Injected SukiSU version number: $KSU_VERSION_NUM"
+         KSU_VERSION="${{ github.event.inputs.sukisu_version }}"
+         KSU_KERNEL_VERSION="${{ github.event.inputs.sukisu_kernel_version }}"
+         echo "KSUVER=$KSU_VERSION" >> $GITHUB_ENV
+         echo "KSU_KERNEL_VER=$KSU_KERNEL_VERSION" >> $GITHUB_ENV
+         # 替换 ifeq 区段，注入数字版本
+         sed -i "/ifeq.*\.git/,/endif/c\\
+         KSU_VERSION := $KSU_VERSION\\
+         ccflags-y += -DKSU_VERSION=\$(KSU_VERSION)\\
+         \$(info -- SukiSU version: \$(KSU_VERSION))
+         " kernel/Makefile
+         # 替换字符串版本宏定义
+         sed -i 's/ccflags-y += -DKSU_VERSION=\\\".*\\\"/ccflags-y += -DKSU_VERSION=\\\"'"$KSU_KERNEL_VERSION"'\\\"/' kernel/Makefile
+         # 替换 Github 字符串版本信息输出
+         sed -i 's/$(info -- \$$(REPO_NAME) version (Github): .*)/$(info -- \$$(REPO_NAME) version (Github): '"$KSU_KERNEL_VERSION"')/' kernel/Makefile
+         echo "✅ Injected SukiSU version: $KSU_VERSION"
+         echo "✅ Injected SukiSU string version: $KSU_KERNEL_VERSION"
 
       - name: Set up SUSFS & apply patches
         run: |
