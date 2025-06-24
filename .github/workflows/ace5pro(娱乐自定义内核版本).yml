@@ -126,13 +126,20 @@ jobs:
          cd kernel_workspace/kernel_platform
          curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s susfs-main
          cd KernelSU
+         # 获取版本号（这里用 GitHub 输入变量）
          KSU_VERSION="${{ github.event.inputs.sukisu_version }}"
+         # 设置环境变量供后续步骤使用
          echo "KSUVER=$KSU_VERSION" >> $GITHUB_ENV
+         # 替换本地 git 分支的版本输出（你原来的做法）
          sed -i "/ifeq.*\.git/,/endif/c\\
          KSU_VERSION := $KSU_VERSION\\
          ccflags-y += -DKSU_VERSION=\$(KSU_VERSION)\\
          \$(info -- SukiSU version: \$(KSU_VERSION))
          " kernel/Makefile
+         # ✅ 替换 GitHub 分支下的打印版本号（v3.1.6-xxx -> 数字）
+         sed -i "s/-- \$(REPO_NAME) version (Github): .*/-- \$(REPO_NAME) version (Github): ${KSU_VERSION}/" kernel/Makefile
+         # ✅ 替换 -DKSU_VERSION="v3.1.6-xxx" 的宏定义为数字版本
+         sed -i "s/-DKSU_VERSION=\\\".*\\\"/-DKSU_VERSION=\\\"${KSU_VERSION}\\\"/" kernel/Makefile
          echo "✅ Injected SukiSU version: $KSU_VERSION"
 
       - name: Set up SUSFS & apply patches
