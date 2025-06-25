@@ -41,10 +41,6 @@ on:
         description: "自定义sukisu版本号"
         required: true
         default: "13171"
-      sukisu_kernel_version:
-        description: "自定义SukiSU字符串版本号"
-        required: true
-        default: "13171"
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -126,29 +122,31 @@ jobs:
          curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s susfs-main
          cd KernelSU
          KSU_VERSION="${{ github.event.inputs.sukisu_version }}"
-         KSU_KERNEL_VERSION="${{ github.event.inputs.sukisu_kernel_version }}"
-         echo "KSUVER=$KSU_VERSION" >> $GITHUB_ENV
-         echo "KSU_KERNEL_VER=$KSU_KERNEL_VERSION" >> $GITHUB_ENV
-         # 🔥 删除 ifeq 块，防止 else 残留
+         KSU_VERSION_NUM="$KSU_VERSION"
+         KSU_VERSION_STR="$KSU_VERSION"
+         # 导出环境变量（可选）
+         echo "KSU_VERSION_NUM=$KSU_VERSION_NUM" >> $GITHUB_ENV
+         echo "KSU_VERSION_STR=$KSU_VERSION_STR" >> $GITHUB_ENV
+         # 🔥 清理原始 Makefile 中的 ifeq 块（避免旧逻辑冲突）
          awk '
-           BEGIN { skip = 0 }
-           /ifeq *\$KSU_GITHUB_VERSION_COMMIT,/ { skip = 1; next }
-           skip && /endif/ { skip = 0; next }
-           skip { next }
-           { print }
-         ' kernel/Makefile > kernel/Makefile.tmp
-         mv kernel/Makefile.tmp kernel/Makefile
-         # ✅ 重新注入版本号定义（数值 + 字符串）
+          BEGIN { skip = 0 }
+          /ifeq.*KSU_GITHUB_VERSION_COMMIT/ { skip = 1; next }
+          skip && /endif/ { skip = 0; next }
+          skip { next }
+          { print }
+          ' kernel/Makefile > kernel/Makefile.tmp && mv kernel/Makefile.tmp kernel/Makefile
+         # ✅ 注入两个版本宏定义（数值 + 字符串）
          cat <<EOF >> kernel/Makefile
          # Injected by GitHub Actions
-         KSU_VERSION := ${KSU_VERSION}
-         ccflags-y += -DKSU_VERSION=\$(KSU_VERSION)
-         ccflags-y += -DKSU_VERSION="${KSU_KERNEL_VERSION}"
-         \$(info -- SukiSU version: \$(KSU_VERSION))
-         \$(info -- SukiSU string version: ${KSU_KERNEL_VERSION})
+         KSU_VERSION_NUM := ${KSU_VERSION_NUM}
+         KSU_VERSION_STR := "${KSU_VERSION_STR}"
+         ccflags-y += -DKSU_VERSION_NUM=\$(KSU_VERSION_NUM)
+         ccflags-y += -DKSU_VERSION_STR=\\\"\$(KSU_VERSION_STR)\\\"
+         \$(info -- SukiSU numeric version: \$(KSU_VERSION_NUM))
+         \$(info -- SukiSU string version: \$(KSU_VERSION_STR))
          EOF
-         echo "✅ Injected SukiSU version: $KSU_VERSION"
-         echo "✅ Injected SukiSU string version: $KSU_KERNEL_VERSION"
+         echo "✅ Injected KSU_VERSION_NUM = $KSU_VERSION_NUM"
+         echo "✅ Injected KSU_VERSION_STR = $KSU_VERSION_STR"
 
       - name: Set up SUSFS & apply patches
         run: |
